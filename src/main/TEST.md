@@ -54,40 +54,45 @@ update_time	DATETIME	最后更新时间
 建议的 Java EE 项目包结构：
 
 text
-com.store
-├── entity           // 实体类（POJO）
-├── dao              // 数据访问层接口
-│   └── impl         // DAO实现类（JDBC）
+com.city.vendora
+├── entity           // JPA 实体类（已加 @Entity、Lombok）
+├── repository       // Spring Data JPA Repository
 ├── service          // 业务逻辑层接口
 │   └── impl         // Service实现类
-├── web              // Servlet（控制器）
-├── util             // 工具类（数据库连接、日期处理等）
-└── filter           // 过滤器（字符编码等）
-1. 实体类 (entity)
-   Category（商品性质：id, categoryName）
+├── controller       // Spring MVC @Controller
+├── util             // 工具类（PageBean 等）
+└── dto              // 数据传输对象（可选）
+1. 实体类 (entity) — 使用 JPA 注解 + Lombok
+   Category：@Entity, @Id, categoryName
 
-Product（商品信息，对应数据库字段）
+Product：@Entity, @Id → productId, @ManyToOne → Category, status 用 Integer
 
-Purchase（买入记录，含总金额自动计算）
+Purchase：@Entity, @Id 自增, @ManyToOne → Product（代替 product_id 外键）
 
-Sale（卖出记录，含总金额自动计算）
+Sale：@Entity, @Id 自增, @ManyToOne → Product
 
-Inventory（库存对象，可含扩展信息）
+Inventory：@Entity, @Id + @OneToOne + @MapsId → Product（product_id 既是主键又是外键）
 
-2. DAO 层接口 (dao)
-   每个实体对应一个 DAO 接口，定义增删改查及特殊查询方法：
+2. Repository 层 (repository) — Spring Data JPA
+   继承 JpaRepository，无需实现类，基础 CRUD 自动提供：
 
-CategoryDao：查所有性质、按ID查名称
+   CategoryRepository extends JpaRepository<Category, Integer>
 
-ProductDao：增、删、改、查所有，按编号/名称模糊查询，按性质筛选
+   ProductRepository extends JpaRepository<Product, String>
+       findByProductIdContainingAndProductNameContaining() — 模糊查询
+       findByCategory_Id() — 按性质筛选
 
-PurchaseDao：插入买入记录、分页查询买入记录（支持日期范围/商品编号）、汇总查询（按时间段、商品性质等汇总进货量）
+   PurchaseRepository extends JpaRepository<Purchase, Integer>
+       @Query 分页条件查询（按商品编号/日期范围）
+       @Query 进货汇总（按性质分组统计数量+金额）
 
-SaleDao：插入卖出记录、分页查询卖出记录、汇总查询（为营业报表提供数据）
+   SaleRepository extends JpaRepository<Sale, Integer>
+       @Query 分页条件查询
+       @Query 销售汇总
 
-InventoryDao：查询当前库存（可按商品、按性质分组）、更新库存（增加/减少）
-
-实现类放在 impl 包下，使用 JDBC PreparedStatement 或 连接池（如 HikariCP/Druid）。
+   InventoryRepository extends JpaRepository<Inventory, String>
+       @Query 按性质筛选库存
+       findByQuantityLessThan() — 低库存预警
 
 3. Service 层接口 (service)
    封装业务逻辑（校验、事务、库存联动）：
@@ -95,16 +100,12 @@ InventoryDao：查询当前库存（可按商品、按性质分组）、更新�
 ProductService：商品增删改查，关联性质名称
 
 PurchaseService：
-
-买入录入：调用 PurchaseDao.insert() + InventoryDao.increaseStock()（需事务）
-
-买入查询/汇总打印
+   买入录入：purchaseRepository.save() + inventoryRepository.save()（@Transactional）
+   买入查询/汇总打印
 
 SaleService：
-
-卖出录入：校验库存是否充足，调用 SaleDao.insert() + InventoryDao.decreaseStock()（事务）
-
-卖出查询/汇总打印
+   卖出录入：校验库存 → saleRepository.save() + 扣库存（@Transactional）
+   卖出查询/汇总打印
 
 InventoryService：库存查询（支持按商品、按性质、预警等）、报表数据组织
 
@@ -114,48 +115,49 @@ ReportService：
 
 营业分类统计输出
 
-4. Web 表现层 (web.servlet)
-   每个主要功能对应一个 Servlet，通过 doGet/doPost 分发，调用 Service，转发到 JSP 或输出 JSON（打印可用简易 HTML 表格 + 浏览器打印功能）：
+4. Controller 层 (controller) — Spring MVC
+   使用 @Controller，调用 Service，返回视图名到 Thymeleaf 模板：
 
-ProductListServlet、ProductAddServlet …
+   ProductController — /product/list、/product/add、/product/edit、/product/delete
 
-PurchaseAddServlet（录入买入信息）、PurchaseQueryServlet、PurchasePrintServlet
+   PurchaseController — /purchase/list、/purchase/add、/purchase/print
 
-SaleAddServlet、SaleQueryServlet、SalePrintServlet
+   SaleController — /sale/list、/sale/add、/sale/print
 
-InventoryQueryServlet、InventoryPrintServlet
+   InventoryController — /inventory/list、/inventory/alert
 
-ReportServlet（接受时间段、商品性质参数，返回统计结果）
+   ReportController — /report/sales、/report/profit
 
-5. JSP 页面（前端）
-   放在 WebContent 或 src/main/webapp 下：
+5. 前端模板（resources/templates/）— Thymeleaf
+   放在 src/main/resources/templates/ 下，按 Controller 建子目录：
 
-product_list.jsp、product_add.jsp
+   product/list.html、product/form.html
 
-purchase_add.jsp、purchase_query.jsp、purchase_print.jsp
+   purchase/list.html、purchase/form.html
 
-sale_add.jsp、sale_query.jsp、sale_print.jsp
+   sale/list.html、sale/form.html
 
-inventory.jsp、report.jsp
+   inventory/list.html
 
-可抽取头部、菜单栏为公共 <jsp:include>。
+   report/sales.html、report/profit.html
+
+   可抽取公共片段（fragment）到 common/ 目录下。
 
 6. 工具类 (util)
-   DBUtil：获取数据库连接（静态方法，可配合连接池）
-
-DateUtils：日期格式转换，为查询提供 java.sql.Date 转换
-
-PageBean：分页工具（封装当前页、总页数、记录列表等）
+   PageBean：分页工具（封装当前页、总页数、记录列表等）
+   注意：Spring Boot 自动管理数据源和事务，无需手动 DBUtil
 
 三、下一步建议
-先建库建表，根据上面设计编写 SQL 脚本并导入 MySQL。
+项目基础已搭好（Spring Boot + JPA + MySQL），当前完成度：
 
-搭建项目基础结构：创建 Dynamic Web Project（或 Maven Web 项目），引入 Servlet、JSTL、MySQL 驱动、连接池依赖。
+实体类 ✓ → Repository ✓ → Service（待写）→ Controller（待写）→ 模板（待写）
 
-编写 DBUtil 和实体类。
+建议实现顺序：
+1. Service 层 — 依次实现 Product → Purchase → Sale → Inventory → Report
+2. Controller 层 — 对应每个 Service 的增删改查接口
+3. Thymeleaf 模板 — 列表页、表单页、打印页
 
-实现一个简单的功能链（例如商品信息的添加和列表展示），打通 Servlet → Service → DAO → JSP 全流程。
-
-再逐步增加买入、卖出、库存联动（重点练习事务）。
-
-最后实现营业报表（复杂查询 + 页面展示）。
+重点练习：
+- Purchase 入库 + 库存联动（@Transactional）
+- Sale 出库 + 库存校验 + 库存联动（@Transactional）
+- 营业报表的 JPQL 复杂查询

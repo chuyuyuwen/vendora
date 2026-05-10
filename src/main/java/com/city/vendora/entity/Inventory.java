@@ -1,52 +1,36 @@
 package com.city.vendora.entity;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.time.Instant;
 import java.util.Date;
 
+@Getter
+@Setter
+@Entity
+@Table(name = "inventory", schema = "store_db")
 public class Inventory {
+    @Id
+    @Size(max = 20)
+    @Column(name = "product_id", nullable = false, length = 20)
     private String productId;
+
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @NotNull
+    @ColumnDefault("0")
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
-    private Date updateTime;
-    // 扩展
-    private String productName;
-    private String categoryName;
 
-    public String getProductId() {
-        return productId;
-    }
-
-    public void setProductId(String productId) {
-        this.productId = productId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "update_time")
+    private Instant updateTime;
 }
