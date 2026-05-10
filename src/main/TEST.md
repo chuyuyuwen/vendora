@@ -161,3 +161,32 @@ ReportService：
 - Purchase 入库 + 库存联动（@Transactional）
 - Sale 出库 + 库存校验 + 库存联动（@Transactional）
 - 营业报表的 JPQL 复杂查询
+
+## 四、用户登录与角色管理（后续扩展）
+
+### 数据库
+6. 用户表 user
+   | 字段 | 类型 | 说明 |
+   |---|---|---|
+   | id | INT | 主键，自增 |
+   | username | VARCHAR(50) | 用户名 |
+   | password | VARCHAR(255) | 密码 |
+   | role | VARCHAR(20) | 角色：ADMIN / USER |
+
+### 新增文件
+```
+entity/User.java          — @Entity，字段：id, username, password, role
+repository/UserRepository — findByUsernameAndPassword()
+controller/LoginController — /login (GET表单 + POST登录), /logout
+```
+
+### 登录流程
+1. 浏览器请求任意页面 → 先检查 session 有没有 loginUser
+2. 没有 → 重定向到 /login
+3. 输入用户名密码 → POST /login → 查数据库 → 匹配则存入 session → 跳转首页
+4. 不匹配 → 返回登录页 + 错误提示
+
+### 角色控制
+- ADMIN：可以访问所有功能（增删改查）
+- USER：只能查看（列表、查询），不能添加/修改/删除
+- 在 Controller 方法里用 HttpSession 获取当前用户，判断 role

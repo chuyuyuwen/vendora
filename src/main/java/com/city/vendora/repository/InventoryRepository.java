@@ -1,6 +1,7 @@
 package com.city.vendora.repository;
 
 import com.city.vendora.entity.Inventory;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface InventoryRepository {
+public interface InventoryRepository extends JpaRepository<Inventory, String> {
     // 按商品性质筛选库存
     @Query("SELECT i FROM Inventory i WHERE (:categoryId IS NULL OR i.product.category.id = :categoryId)")
     List<Inventory> findByCategory(@Param("categoryId") Integer categoryId);
