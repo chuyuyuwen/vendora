@@ -1,5 +1,6 @@
 package com.city.vendora.controller;
 
+import com.city.vendora.entity.Category;
 import com.city.vendora.entity.Product;
 import com.city.vendora.repository.CategoryRepository;
 import com.city.vendora.service.ProductService;
@@ -34,7 +35,9 @@ public class ProductController {
 
     @GetMapping("/add")
     public String addForm(Model model) {
-        model.addAttribute("product", new Product());
+        Product product = new Product();
+        product.setCategory(new Category());
+        model.addAttribute("product", product);
         model.addAttribute("categories", categoryRepository.findAll());
         return "product/form";
     }

@@ -1,5 +1,6 @@
 package com.city.vendora.controller;
 
+import com.city.vendora.entity.Product;
 import com.city.vendora.entity.Purchase;
 import com.city.vendora.service.ProductService;
 import com.city.vendora.service.PurchaseService;
@@ -46,7 +47,9 @@ public class PurchaseController {
 
     @GetMapping("/add")
     public String addForm(Model model) {
-        model.addAttribute("purchase", new Purchase());
+        Purchase purchase = new Purchase();
+        purchase.setProduct(new Product());
+        model.addAttribute("purchase", purchase);
         model.addAttribute("products", productService.listAllProducts());
         return "purchase/form";
     }

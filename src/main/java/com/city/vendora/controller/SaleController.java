@@ -1,5 +1,6 @@
 package com.city.vendora.controller;
 
+import com.city.vendora.entity.Product;
 import com.city.vendora.entity.Sale;
 import com.city.vendora.service.ProductService;
 import com.city.vendora.service.SaleService;
@@ -46,7 +47,9 @@ public class SaleController {
 
     @GetMapping("/add")
     public String addForm(Model model) {
-        model.addAttribute("sale", new Sale());
+        Sale sale = new Sale();
+        sale.setProduct(new Product());
+        model.addAttribute("sale", sale);
         model.addAttribute("products", productService.listAllProducts());
         return "sale/form";
     }
