@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{common/header :: head}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{common/header :: nav}"></th:block>
+    <th:block th:replace="~{common/header :: messages}"></th:block>
+
+    <div class="container">
+        <h3 class="mb-3">商品管理</h3>
+
+        <!-- 搜索栏 -->
+        <form class="row g-3 mb-4" th:action="@{/product/list}" method="get">
+            <div class="col-md-3">
+                <input type="text" name="productId" class="form-control" placeholder="商品编号"
+                       th:value="${productId}">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="productName" class="form-control" placeholder="商品名称"
+                       th:value="${productName}">
+            </div>
+            <div class="col-md-2">
+                <select name="categoryId" class="form-select">
+                    <option value="">全部性质</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}"
+                            th:text="${c.categoryName}"
+                            th:selected="${categoryId != null && categoryId == c.id}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">搜索</button>
+                <a th:href="@{/product/list}" class="btn btn-outline-secondary">重置</a>
+            </div>
+            <div class="col-md-2 text-end">
+                <a th:href="@{/product/add}" class="btn btn-success">新增商品</a>
+            </div>
+        </form>
+
+        <!-- 商品列表 -->
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>商品编号</th>
+                    <th>商品名称</th>
+                    <th>商品性质</th>
+                    <th>录入时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="p : ${products}">
+                    <td th:text="${p.productId}"></td>
+                    <td th:text="${p.productName}"></td>
+                    <td th:text="${p.category.categoryName}"></td>
+                    <td th:text="${#temporals.format(p.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <span th:if="${p.status == 1}" class="badge bg-success">在用</span>
+                        <span th:unless="${p.status == 1}" class="badge bg-secondary">停用</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/product/edit/{id}(id=${p.productId})}" class="btn btn-sm btn-warning">编辑</a>
+                        <a th:if="${p.status == 1}"
+                           th:href="@{/product/disable/{id}(id=${p.productId})}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('确定停用该商品吗？')">停用</a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="6" class="text-center text-muted">暂无商品数据</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:replace="~{common/header :: scripts}"></th:block>
+</body>
+</html>

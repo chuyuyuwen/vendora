@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{common/header :: head}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{common/header :: nav}"></th:block>
+
+    <div class="container">
+        <h3 class="mb-3">利润分析</h3>
+
+        <form class="row g-3 mb-4" th:action="@{/report/profit}" method="get">
+            <div class="col-md-2">
+                <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+            </div>
+            <div class="col-md-2">
+                <select name="categoryId" class="form-select">
+                    <option value="">全部性质</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}"
+                            th:text="${c.categoryName}"
+                            th:selected="${categoryId != null && categoryId == c.id}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">查询</button>
+                <a th:href="@{/report/profit}" class="btn btn-outline-secondary">重置</a>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-outline-secondary" onclick="window.print()">打印报表</button>
+            </div>
+        </form>
+
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>商品性质</th>
+                    <th>销售数量</th>
+                    <th>销售额</th>
+                    <th>进货成本</th>
+                    <th>利润</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="row : ${report}">
+                    <td th:text="${row.categoryName}"></td>
+                    <td th:text="${row.saleQuantity}"></td>
+                    <td th:text="${#numbers.formatDecimal(row.saleAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+                    <td th:text="${#numbers.formatDecimal(row.purchaseAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+                    <td>
+                        <span th:classappend="${row.profit.doubleValue() >= 0} ? 'text-success' : 'text-danger'"
+                              th:text="${#numbers.formatDecimal(row.profit, 0, 'COMMA', 2, 'POINT')}"></span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(report)}">
+                    <td colspan="5" class="text-center text-muted">暂无数据</td>
+                </tr>
+            </tbody>
+            <tfoot th:if="${!#lists.isEmpty(report)}" class="table-secondary">
+                <tr>
+                    <th>合计</th>
+                    <th th:text="${#aggregates.sum(report.![saleQuantity])}"></th>
+                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(report.![saleAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(report.![purchaseAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(report.![profit]), 0, 'COMMA', 2, 'POINT')}"></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <th:block th:replace="~{common/header :: scripts}"></th:block>
+</body>
+</html>

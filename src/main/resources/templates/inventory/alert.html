@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{common/header :: head}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{common/header :: nav}"></th:block>
+
+    <div class="container">
+        <h3 class="mb-3">低库存预警</h3>
+
+        <form class="row g-3 mb-4" th:action="@{/inventory/alert}" method="get">
+            <div class="col-md-2">
+                <label class="form-label">预警阈值</label>
+                <input type="number" name="threshold" class="form-control"
+                       th:value="${threshold}" min="1">
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-primary">查询</button>
+                <a th:href="@{/inventory/list}" class="btn btn-outline-secondary">返回库存</a>
+            </div>
+        </form>
+
+        <div class="alert alert-warning" th:if="${!#lists.isEmpty(lowStock)}">
+            以下 <b th:text="${#lists.size(lowStock)}"></b> 种商品库存低于 <b th:text="${threshold}"></b>，请及时补货！
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>商品编号</th>
+                    <th>商品名称</th>
+                    <th>商品性质</th>
+                    <th>库存数量</th>
+                    <th>最后更新时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="inv : ${lowStock}" class="table-danger">
+                    <td th:text="${inv.product.productId}"></td>
+                    <td th:text="${inv.product.productName}"></td>
+                    <td th:text="${inv.product.category.categoryName}"></td>
+                    <td><b th:text="${inv.quantity}"></b></td>
+                    <td th:text="${#temporals.format(inv.updateTime, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(lowStock)}">
+                    <td colspan="5" class="text-center text-success">没有低库存商品</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:replace="~{common/header :: scripts}"></th:block>
+</body>
+</html>

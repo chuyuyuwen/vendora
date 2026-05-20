@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{common/header :: head}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{common/header :: nav}"></th:block>
+
+    <div class="container">
+        <h3 class="mb-3">
+            <span th:if="${product.productId == null}">新增商品</span>
+            <span th:unless="${product.productId == null}">编辑商品</span>
+        </h3>
+
+        <form th:action="@{/product/save}" method="post" class="row g-3" style="max-width:600px">
+            <div class="col-12">
+                <label class="form-label">商品编号</label>
+                <input type="text" name="productId" class="form-control"
+                       th:value="${product.productId}"
+                       th:readonly="${product.productId != null}"
+                       required maxlength="20">
+                <div th:if="${product.productId != null}" class="form-text text-muted">商品编号不可修改</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">商品名称</label>
+                <input type="text" name="productName" class="form-control"
+                       th:value="${product.productName}" required maxlength="100">
+            </div>
+            <div class="col-12">
+                <label class="form-label">商品性质</label>
+                <select name="category.id" class="form-select" required>
+                    <option value="">-- 请选择 --</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}"
+                            th:text="${c.categoryName}"
+                            th:selected="${product.category != null && product.category.id == c.id}"></option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">状态</label>
+                <select name="status" class="form-select">
+                    <option value="1" th:selected="${product.status == null || product.status == 1}">在用</option>
+                    <option value="0" th:selected="${product.status != null && product.status == 0}">停用</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a th:href="@{/product/list}" class="btn btn-outline-secondary">取消</a>
+            </div>
+        </form>
+    </div>
+
+    <th:block th:replace="~{common/header :: scripts}"></th:block>
+</body>
+</html>
