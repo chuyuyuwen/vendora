@@ -63,7 +63,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public List<Map<String, Object>> getPurchaseSummary(LocalDate startDate, LocalDate endDate) {
-        List<Object[]> results = purchaseRepository.summaryByCategory(startDate, endDate);
+        List<Object[]> results = purchaseRepository.summaryByCategory(startDate, endDate, null);
         List<Map<String, Object>> list = new ArrayList<>();
         for (Object[] row : results) {
             Map<String, Object> map = new HashMap<>();

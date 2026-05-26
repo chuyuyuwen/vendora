@@ -66,7 +66,7 @@ public class SaleServiceImpl  implements SaleService {
 
     @Override
     public List<Map<String, Object>> getSaleSummary(LocalDate startDate, LocalDate endDate) {
-        List<Object[]> results = saleRepository.salesSummary(startDate, endDate);
+        List<Object[]> results = saleRepository.salesSummary(startDate, endDate, null);
         List<Map<String, Object>> list = new ArrayList<>();
         for (Object[] row : results) {
             Map<String, Object> map = new HashMap<>();

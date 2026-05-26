@@ -8,11 +8,13 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "product", schema = "store_db")
+@Table(name = "product")
 public class Product {
     @Id
     @Size(max = 20)
@@ -31,7 +33,7 @@ public class Product {
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "create_time")
-    private Instant createTime;
+    private LocalDateTime createTime;
 
     @ColumnDefault("1")
     @Column(name = "status")

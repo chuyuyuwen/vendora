@@ -24,7 +24,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<Map<String, Object>> getSalesReport(LocalDate startDate, LocalDate endDate, Integer categoryId) {
-        List<Object[]> results = saleRepository.salesSummary(startDate, endDate);
+        List<Object[]> results = saleRepository.salesSummary(startDate, endDate, categoryId);
         List<Map<String, Object>> list = new ArrayList<>();
         for (Object[] row : results) {
             Map<String, Object> map = new HashMap<>();
@@ -40,8 +40,8 @@ public class ReportServiceImpl implements ReportService {
     public List<Map<String, Object>> getProfitReport(LocalDate startDate, LocalDate endDate, Integer categoryId) {
         List<Map<String, Object>> list = new ArrayList<>();
 
-        List<Object[]> salesData = saleRepository.salesSummary(startDate, endDate);
-        List<Object[]> purchaseData = purchaseRepository.summaryByCategory(startDate, endDate);
+        List<Object[]> salesData = saleRepository.salesSummary(startDate, endDate, categoryId);
+        List<Object[]> purchaseData = purchaseRepository.summaryByCategory(startDate, endDate, categoryId);
 
         // 将进货数据按性质名称放入 Map，便于匹配
         Map<String, Object[]> purchaseMap = new HashMap<>();

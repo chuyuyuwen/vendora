@@ -8,12 +8,13 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "inventory", schema = "store_db")
+@Table(name = "inventory")
 public class Inventory {
     @Id
     @Size(max = 20)
@@ -32,5 +33,5 @@ public class Inventory {
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_time")
-    private Instant updateTime;
+    private LocalDateTime updateTime;
 }

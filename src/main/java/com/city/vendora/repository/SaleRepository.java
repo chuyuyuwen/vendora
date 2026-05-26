@@ -27,7 +27,9 @@ public interface SaleRepository extends JpaRepository<Sale,Integer> {
             "FROM Sale s " +
             "WHERE (:startDate IS NULL OR s.saleDate >= :startDate) " +
             "AND (:endDate IS NULL OR s.saleDate <= :endDate) " +
+            "AND (:categoryId IS NULL OR s.product.category.id = :categoryId) " +
             "GROUP BY s.product.category.categoryName")
     List<Object[]> salesSummary(@Param("startDate") LocalDate startDate,
-                                @Param("endDate") LocalDate endDate);
+                                @Param("endDate") LocalDate endDate,
+                                @Param("categoryId") Integer categoryId);
 }

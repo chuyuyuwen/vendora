@@ -29,7 +29,9 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Integer> {
             "FROM Purchase p " +
             "WHERE (:startDate IS NULL OR p.purchaseDate >= :startDate) " +
             "AND (:endDate IS NULL OR p.purchaseDate <= :endDate) " +
+            "AND (:categoryId IS NULL OR p.product.category.id = :categoryId) " +
             "GROUP BY p.product.category.categoryName")
     List<Object[]> summaryByCategory(@Param("startDate") LocalDate startDate,
-                                     @Param("endDate") LocalDate endDate);
+                                     @Param("endDate") LocalDate endDate,
+                                     @Param("categoryId") Integer categoryId);
 }
