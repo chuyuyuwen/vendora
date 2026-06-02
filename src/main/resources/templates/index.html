@@ -1,10 +1,208 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;url=/product/list">
+<head th:replace="~{common/header :: head}">
+    <title>首页 - Vendora</title>
 </head>
 <body>
-    <p>正在跳转...<a th:href="@{/product/list}">点击进入系统</a></p>
+    <nav th:replace="~{common/header :: nav}"></nav>
+
+    <div class="container">
+        <div th:replace="~{common/header :: messages}"></div>
+
+        <h4 class="mb-4"><i class="fa-solid fa-chart-simple"></i> 数据概览</h4>
+
+        <!-- 统计卡片 -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-start border-primary border-4 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">商品总数</p>
+                                <h3 class="mb-0" th:text="${totalProducts}">0</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="fa-solid fa-box text-primary fa-lg"></i>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <small class="text-success"><i class="fa-solid fa-circle"></i> 在用 <span th:text="${activeProducts}">0</span></small>
+                        <small class="text-secondary ms-2"><i class="fa-solid fa-circle"></i> 停用 <span th:text="${disabledProducts}">0</span></small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-start border-warning border-4 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">低库存预警</p>
+                                <h3 class="mb-0 text-warning" th:text="${lowStockCount}">0</h3>
+                            </div>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="fa-solid fa-triangle-exclamation text-warning fa-lg"></i>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <small class="text-muted">库存低于 10 件的商品</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-start border-success border-4 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">今日买入</p>
+                                <h5 class="mb-0 text-success" th:text="'¥' + ${#numbers.formatDecimal(todayPurchasesAmount, 0, 'COMMA', 2, 'POINT')}">¥0.00</h5>
+                            </div>
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="fa-solid fa-cart-plus text-success fa-lg"></i>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <small class="text-muted"><span th:text="${todayPurchasesCount}">0</span> 笔</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-start border-info border-4 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">今日卖出</p>
+                                <h5 class="mb-0 text-info" th:text="'¥' + ${#numbers.formatDecimal(todaySalesAmount, 0, 'COMMA', 2, 'POINT')}">¥0.00</h5>
+                            </div>
+                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                <i class="fa-solid fa-cash-register text-info fa-lg"></i>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <small class="text-muted"><span th:text="${todaySalesCount}">0</span> 笔</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="fa-solid fa-chart-pie text-primary"></i> 本月各性质销售额占比</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="pieChart" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="fa-solid fa-chart-line text-success"></i> 近30天销售趋势</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="lineChart" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:replace="~{common/header :: scripts}"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // ---- 饼图：各性质销售额占比 ----
+        var pieData = /*[[${salesByCategory}]]*/ [];
+        var pieChart = echarts.init(document.getElementById('pieChart'));
+        pieChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: ¥{c} ({d}%)'
+            },
+            legend: {
+                bottom: 0,
+                textStyle: { fontSize: 12 }
+            },
+            series: [{
+                type: 'pie',
+                radius: ['40%', '65%'],
+                center: ['50%', '45%'],
+                avoidLabelOverlap: true,
+                itemStyle: {
+                    borderRadius: 6,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    formatter: '{b}',
+                    fontSize: 12
+                },
+                emphasis: {
+                    label: { show: true, fontSize: 14, fontWeight: 'bold' }
+                },
+                data: pieData.map(function(item) {
+                    return { name: item.categoryName, value: item.totalAmount };
+                })
+            }]
+        });
+
+        // ---- 折线图：近30天每日销售额 ----
+        var dailySales = /*[[${dailySales}]]*/ [];
+        var lineChart = echarts.init(document.getElementById('lineChart'));
+        lineChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                formatter: function(params) {
+                    var p = params[0];
+                    return p.axisValue + '<br/>销售额: ¥' + Number(p.value).toLocaleString();
+                }
+            },
+            grid: {
+                left: '8%',
+                right: '4%',
+                bottom: '12%',
+                top: '8%'
+            },
+            xAxis: {
+                type: 'category',
+                data: dailySales.map(function(item) { return item[0]; }),
+                axisLabel: { fontSize: 11 }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: '¥{value}'
+                }
+            },
+            series: [{
+                type: 'line',
+                data: dailySales.map(function(item) { return item[1]; }),
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 6,
+                lineStyle: { width: 2 },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(40, 167, 69, 0.3)' },
+                        { offset: 1, color: 'rgba(40, 167, 69, 0.02)' }
+                    ])
+                }
+            }]
+        });
+
+        // 窗口大小变化时自适应
+        window.addEventListener('resize', function() {
+            pieChart.resize();
+            lineChart.resize();
+        });
+
+        /*]]>*/
+    </script>
 </body>
 </html>
