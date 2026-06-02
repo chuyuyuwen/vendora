@@ -17,7 +17,8 @@ public interface SaleRepository extends JpaRepository<Sale,Integer> {
     @Query("SELECT s FROM Sale s WHERE " +
             "(:productId IS NULL OR s.product.productId = :productId) AND " +
             "(:startDate IS NULL OR s.saleDate >= :startDate) AND " +
-            "(:endDate IS NULL OR s.saleDate <= :endDate)")
+            "(:endDate IS NULL OR s.saleDate <= :endDate) " +
+            "ORDER BY s.saleDate DESC, s.id DESC")
     Page<Sale> findByCondition(@Param("productId") String productId,
                                @Param("startDate") LocalDate startDate,
                                @Param("endDate") LocalDate endDate,

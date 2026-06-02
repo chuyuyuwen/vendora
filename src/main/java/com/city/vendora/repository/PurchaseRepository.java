@@ -18,7 +18,8 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Integer> {
     @Query("SELECT p FROM Purchase p WHERE " +
             "(:productId IS NULL OR p.product.productId = :productId) AND " +
             "(:startDate IS NULL OR p.purchaseDate >= :startDate) AND " +
-            "(:endDate IS NULL OR p.purchaseDate <= :endDate)")
+            "(:endDate IS NULL OR p.purchaseDate <= :endDate) " +
+            "ORDER BY p.purchaseDate DESC, p.id DESC")
     Page<Purchase> findByCondition(@Param("productId") String productId,
                                    @Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate,

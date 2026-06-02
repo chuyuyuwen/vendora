@@ -36,6 +36,9 @@ public class PurchaseController {
                        @RequestParam(defaultValue = "1") int pageNo,
                        @RequestParam(defaultValue = "10") int pageSize,
                        Model model) {
+        // 空字符串转 null，避免分页链接传入空参数导致查询不生效
+        if (productId != null && productId.isEmpty()) productId = null;
+
         PageBean<Purchase> page = purchaseService.queryPurchases(productId, startDate, endDate, pageNo, pageSize);
         model.addAttribute("page", page);
         model.addAttribute("productId", productId);

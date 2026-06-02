@@ -73,12 +73,14 @@
             <nav>
                 <ul class="pagination mb-0">
                     <li class="page-item" th:classappend="${!page.hasPrevious} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${page.hasPrevious} ? @{/sale/list(productId=${productId}, startDate=${startDate}, endDate=${endDate}, pageNo=${page.previousPage}, pageSize=${page.pageSize})} : '#'">上一页</a>
+                        <a th:if="${page.hasPrevious}" class="page-link"
+                           th:href="@{/sale/list(productId=${productId}, startDate=${startDate}, endDate=${endDate}, pageNo=${page.previousPage}, pageSize=${page.pageSize})}">上一页</a>
+                        <span th:unless="${page.hasPrevious}" class="page-link">上一页</span>
                     </li>
                     <li class="page-item" th:classappend="${!page.hasNext} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${page.hasNext} ? @{/sale/list(productId=${productId}, startDate=${startDate}, endDate=${endDate}, pageNo=${page.nextPage}, pageSize=${page.pageSize})} : '#'">下一页</a>
+                        <a th:if="${page.hasNext}" class="page-link"
+                           th:href="@{/sale/list(productId=${productId}, startDate=${startDate}, endDate=${endDate}, pageNo=${page.nextPage}, pageSize=${page.pageSize})}">下一页</a>
+                        <span th:unless="${page.hasNext}" class="page-link">下一页</span>
                     </li>
                 </ul>
             </nav>
