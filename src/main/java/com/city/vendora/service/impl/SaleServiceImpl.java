@@ -77,4 +77,22 @@ public class SaleServiceImpl  implements SaleService {
         }
         return list;
     }
+
+    @Override
+    // Dashboard：获取今日销售总额
+    public BigDecimal getTodaySalesAmount() {
+        return saleRepository.sumTotalAmountBySaleDate(LocalDate.now());
+    }
+
+    @Override
+    // Dashboard：获取今日销售笔数
+    public long getTodaySalesCount() {
+        return saleRepository.countBySaleDate(LocalDate.now());
+    }
+
+    @Override
+    // Dashboard：获取日期范围内的每日销售额趋势
+    public List<Object[]> getDailySalesTrend(LocalDate startDate, LocalDate endDate) {
+        return saleRepository.dailySalesTotal(startDate, endDate);
+    }
 }

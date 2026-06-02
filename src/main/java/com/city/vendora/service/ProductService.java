@@ -11,4 +11,8 @@ public interface ProductService {
     Product getProductById(String productId);
     List<Product> listAllProducts();
     List<Product> searchProducts(String productId, String productName, Integer categoryId);
+    // 获取商品总数（给 dashboard 首页用）
+    long countAllProducts();
+    // 获取已停用商品数
+    long countDisabledProducts();
 }

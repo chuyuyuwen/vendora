@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,4 +35,12 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Integer> {
     List<Object[]> summaryByCategory(@Param("startDate") LocalDate startDate,
                                      @Param("endDate") LocalDate endDate,
                                      @Param("categoryId") Integer categoryId);
+
+    // Dashboard：查询指定日期的买入总金额
+    @Query("SELECT COALESCE(SUM(p.totalAmount), 0) FROM Purchase p WHERE p.purchaseDate = :date")
+    BigDecimal sumTotalAmountByPurchaseDate(@Param("date") LocalDate date);
+
+    // Dashboard：查询指定日期的买入笔数
+    @Query("SELECT COUNT(p) FROM Purchase p WHERE p.purchaseDate = :date")
+    long countByPurchaseDate(@Param("date") LocalDate date);
 }

@@ -74,4 +74,16 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
         return list;
     }
+
+    @Override
+    // Dashboard：获取今日买入总额
+    public BigDecimal getTodayPurchasesAmount() {
+        return purchaseRepository.sumTotalAmountByPurchaseDate(LocalDate.now());
+    }
+
+    @Override
+    // Dashboard：获取今日买入笔数
+    public long getTodayPurchasesCount() {
+        return purchaseRepository.countByPurchaseDate(LocalDate.now());
+    }
 }

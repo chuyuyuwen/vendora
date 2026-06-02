@@ -58,4 +58,16 @@ public class ProductServiceImpl implements ProductService {
                 productId != null ? productId : "",
                 productName != null ? productName : "");
     }
+
+    @Override
+    // 获取商品总数
+    public long countAllProducts() {
+        return productRepository.count();
+    }
+
+    @Override
+    // 获取已停用商品数
+    public long countDisabledProducts() {
+        return productRepository.countByStatus(0);
+    }
 }

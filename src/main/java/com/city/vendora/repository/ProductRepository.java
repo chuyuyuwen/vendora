@@ -12,4 +12,7 @@ public interface ProductRepository extends JpaRepository<Product,String> {
             String productId, String productName);
 
     List<Product> findByCategory_Id(Integer categoryId);
+
+    // 按商品状态统计数量（status=1在用，status=0停用）
+    long countByStatus(Integer status);
 }
