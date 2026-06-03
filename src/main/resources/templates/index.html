@@ -11,7 +11,6 @@
 
         <h4 class="mb-4"><i class="fa-solid fa-chart-simple"></i> 数据概览</h4>
 
-        <!-- 统计卡片 -->
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="card border-start border-primary border-4 shadow-sm h-100">
@@ -31,7 +30,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card border-start border-warning border-4 shadow-sm h-100">
                     <div class="card-body">
@@ -49,7 +47,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card border-start border-success border-4 shadow-sm h-100">
                     <div class="card-body">
@@ -67,7 +64,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card border-start border-info border-4 shadow-sm h-100">
                     <div class="card-body">
@@ -87,7 +83,6 @@
             </div>
         </div>
 
-        <!-- 图表区域 -->
         <div class="row g-3">
             <div class="col-md-6">
                 <div class="card shadow-sm">
@@ -114,95 +109,49 @@
 
     <script th:replace="~{common/header :: scripts}"></script>
     <script th:inline="javascript">
-        /*<![CDATA[*/
+        // Compiled controller provides these as JSON strings
+        var pieData = JSON.parse(/*[[${salesByCategoryJson}]]*/ '[]');
+        var dailySales = JSON.parse(/*[[${dailySalesJson}]]*/ '[]');
 
-        // ---- 饼图：各性质销售额占比 ----
-        var pieData = /*[[${salesByCategory}]]*/ [];
-        var pieChart = echarts.init(document.getElementById('pieChart'));
-        pieChart.setOption({
-            tooltip: {
-                trigger: 'item',
-                formatter: '{b}: ¥{c} ({d}%)'
-            },
-            legend: {
-                bottom: 0,
-                textStyle: { fontSize: 12 }
-            },
-            series: [{
-                type: 'pie',
-                radius: ['40%', '65%'],
-                center: ['50%', '45%'],
-                avoidLabelOverlap: true,
-                itemStyle: {
-                    borderRadius: 6,
-                    borderColor: '#fff',
-                    borderWidth: 2
-                },
-                label: {
-                    show: true,
-                    formatter: '{b}',
-                    fontSize: 12
-                },
-                emphasis: {
-                    label: { show: true, fontSize: 14, fontWeight: 'bold' }
-                },
-                data: pieData.map(function(item) {
-                    return { name: item.categoryName, value: item.totalAmount };
-                })
-            }]
-        });
+        (function() {
+            var chart = echarts.init(document.getElementById('pieChart'));
+            if (pieData.length > 0) {
+                chart.setOption({
+                    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+                    legend: { bottom: 0, textStyle: { fontSize: 12 } },
+                    series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '45%'],
+                        label: { formatter: '{b}', fontSize: 12 },
+                        data: pieData.map(function(d) {
+                            return { name: d.categoryName, value: d.totalAmount };
+                        }) }]
+                });
+            } else {
+                chart.setOption({ title: { text: '本月暂无数据', left: 'center', top: 'center',
+                    textStyle: { color: '#999', fontSize: 14 } } });
+            }
+            window.addEventListener('resize', function() { chart.resize(); });
+        })();
 
-        // ---- 折线图：近30天每日销售额 ----
-        var dailySales = /*[[${dailySales}]]*/ [];
-        var lineChart = echarts.init(document.getElementById('lineChart'));
-        lineChart.setOption({
-            tooltip: {
-                trigger: 'axis',
-                formatter: function(params) {
-                    var p = params[0];
-                    return p.axisValue + '<br/>销售额: ¥' + Number(p.value).toLocaleString();
-                }
-            },
-            grid: {
-                left: '8%',
-                right: '4%',
-                bottom: '12%',
-                top: '8%'
-            },
-            xAxis: {
-                type: 'category',
-                data: dailySales.map(function(item) { return item[0]; }),
-                axisLabel: { fontSize: 11 }
-            },
-            yAxis: {
-                type: 'value',
-                axisLabel: {
-                    formatter: '¥{value}'
-                }
-            },
-            series: [{
-                type: 'line',
-                data: dailySales.map(function(item) { return item[1]; }),
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 6,
-                lineStyle: { width: 2 },
-                areaStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(40, 167, 69, 0.3)' },
-                        { offset: 1, color: 'rgba(40, 167, 69, 0.02)' }
-                    ])
-                }
-            }]
-        });
-
-        // 窗口大小变化时自适应
-        window.addEventListener('resize', function() {
-            pieChart.resize();
-            lineChart.resize();
-        });
-
-        /*]]>*/
+        (function() {
+            var chart = echarts.init(document.getElementById('lineChart'));
+            if (dailySales.length > 0) {
+                chart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    grid: { left: '8%', right: '4%', bottom: '12%', top: '8%' },
+                    xAxis: { type: 'category', data: dailySales.map(function(d) { return d[0]; }),
+                        axisLabel: { fontSize: 11 } },
+                    yAxis: { type: 'value', axisLabel: { formatter: '{value}' } },
+                    series: [{ type: 'line', data: dailySales.map(function(d) { return d[1]; }),
+                        smooth: true, symbolSize: 6,
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,
+                            [{offset:0,color:'rgba(40,167,69,0.3)'},{offset:1,color:'rgba(40,167,69,0.02)'}]) } }]
+                });
+            } else {
+                chart.setOption({ title: { text: '近30天暂无数据', left: 'center', top: 'center',
+                    textStyle: { color: '#999', fontSize: 14 } } });
+            }
+            window.addEventListener('resize', function() { chart.resize(); });
+        })();
     </script>
 </body>
 </html>
