@@ -9,7 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class IndexController {
@@ -32,7 +35,6 @@ public class IndexController {
 
     @GetMapping("/")
     public String index(Model model) {
-        // 统计卡片数据
         long totalProducts = productService.countAllProducts();
         long disabledProducts = productService.countDisabledProducts();
         long lowStockCount = inventoryService.getLowStockProducts(10).size();
@@ -42,18 +44,66 @@ public class IndexController {
         model.addAttribute("disabledProducts", disabledProducts);
         model.addAttribute("lowStockCount", lowStockCount);
 
-        model.addAttribute("todaySalesAmount", saleService.getTodaySalesAmount());
+        BigDecimal todaySalesAmount = saleService.getTodaySalesAmount();
+        model.addAttribute("todaySalesAmount", todaySalesAmount != null ? todaySalesAmount : BigDecimal.ZERO);
         model.addAttribute("todaySalesCount", saleService.getTodaySalesCount());
-        model.addAttribute("todayPurchasesAmount", purchaseService.getTodayPurchasesAmount());
+
+        BigDecimal todayPurchasesAmount = purchaseService.getTodayPurchasesAmount();
+        model.addAttribute("todayPurchasesAmount", todayPurchasesAmount != null ? todayPurchasesAmount : BigDecimal.ZERO);
         model.addAttribute("todayPurchasesCount", purchaseService.getTodayPurchasesCount());
 
-        // 饼图数据：本月各类别销售额占比
-        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
-        model.addAttribute("salesByCategory", reportService.getSalesReport(monthStart, LocalDate.now(), null));
+        // 饼图 JSON
+        try {
+            LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
+            List<Map<String, Object>> pieData = reportService.getSalesReport(monthStart, LocalDate.now(), null);
+            model.addAttribute("salesByCategoryJson", toPieChartJson(pieData));
+        } catch (Exception e) {
+            model.addAttribute("salesByCategoryJson", "[]");
+        }
 
-        // 折线图数据：近 30 天每日销售额趋势
-        model.addAttribute("dailySales", saleService.getDailySalesTrend(LocalDate.now().minusDays(29), LocalDate.now()));
+        // 折线图 JSON
+        try {
+            List<Object[]> lineData = saleService.getDailySalesTrend(
+                    LocalDate.now().minusDays(29), LocalDate.now());
+            model.addAttribute("dailySalesJson", toLineChartJson(lineData));
+        } catch (Exception e) {
+            model.addAttribute("dailySalesJson", "[]");
+        }
 
         return "index";
+    }
+
+    private String toPieChartJson(List<Map<String, Object>> data) {
+        StringBuilder sb = new StringBuilder("[");
+        boolean first = true;
+        for (Map<String, Object> row : data) {
+            if (!first) sb.append(",");
+            first = false;
+            String name = String.valueOf(row.get("categoryName"));
+            Object amount = row.get("totalAmount");
+            sb.append("{\"categoryName\":\"").append(escapeJson(name)).append("\",");
+            sb.append("\"totalAmount\":").append(amount != null ? amount.toString() : "0");
+            sb.append("}");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String toLineChartJson(List<Object[]> data) {
+        StringBuilder sb = new StringBuilder("[");
+        boolean first = true;
+        for (Object[] row : data) {
+            if (!first) sb.append(",");
+            first = false;
+            sb.append("[\"").append(row[0] != null ? row[0].toString() : "").append("\",");
+            sb.append(row[1] != null ? row[1].toString() : "0").append("]");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

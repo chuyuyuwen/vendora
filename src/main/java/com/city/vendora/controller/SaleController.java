@@ -2,6 +2,8 @@ package com.city.vendora.controller;
 
 import com.city.vendora.entity.Product;
 import com.city.vendora.entity.Sale;
+import com.city.vendora.repository.InventoryRepository;
+import com.city.vendora.repository.SaleRepository;
 import com.city.vendora.service.ProductService;
 import com.city.vendora.service.SaleService;
 import com.city.vendora.util.PageBean;
@@ -11,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +27,15 @@ public class SaleController {
 
     private final SaleService saleService;
     private final ProductService productService;
+    private final SaleRepository saleRepository;
+    private final InventoryRepository inventoryRepository;
 
-    public SaleController(SaleService saleService, ProductService productService) {
+    public SaleController(SaleService saleService, ProductService productService,
+                          SaleRepository saleRepository, InventoryRepository inventoryRepository) {
         this.saleService = saleService;
         this.productService = productService;
+        this.saleRepository = saleRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     @GetMapping("/list")
@@ -36,7 +45,6 @@ public class SaleController {
                        @RequestParam(defaultValue = "1") int pageNo,
                        @RequestParam(defaultValue = "10") int pageSize,
                        Model model) {
-        // 空字符串转 null，避免分页链接传入空参数导致查询不生效
         if (productId != null && productId.isEmpty()) productId = null;
 
         PageBean<Sale> page = saleService.querySales(productId, startDate, endDate, pageNo, pageSize);
@@ -65,7 +73,7 @@ public class SaleController {
         } else {
             ra.addFlashAttribute("error", "库存不足，无法出售");
         }
-        return "redirect:/sale/list";
+        return "redirect:/trade?tab=sale";
     }
 
     @GetMapping("/print")
@@ -77,5 +85,20 @@ public class SaleController {
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         return "sale/print";
+    }
+
+    @GetMapping("/product-info")
+    @ResponseBody
+    public Map<String, Object> getProductInfo(@RequestParam String productId) {
+        Map<String, Object> result = new HashMap<>();
+        Sale latest = saleRepository.findTopByProductProductIdOrderBySaleDateDesc(productId);
+        if (latest != null) {
+            result.put("latestPrice", latest.getSalePrice());
+        } else {
+            result.put("latestPrice", BigDecimal.ZERO);
+        }
+        int stock = inventoryRepository.getStock(productId);
+        result.put("stock", stock);
+        return result;
     }
 }

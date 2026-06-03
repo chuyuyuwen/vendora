@@ -65,7 +65,7 @@ public class PurchaseController {
         } else {
             ra.addFlashAttribute("msg", "买入录入失败");
         }
-        return "redirect:/purchase/list";
+        return "redirect:/trade?tab=purchase";
     }
 
     @GetMapping("/print")

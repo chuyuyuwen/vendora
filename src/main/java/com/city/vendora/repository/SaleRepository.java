@@ -50,4 +50,6 @@ public interface SaleRepository extends JpaRepository<Sale,Integer> {
             "GROUP BY s.saleDate ORDER BY s.saleDate")
     List<Object[]> dailySalesTotal(@Param("start") LocalDate start,
                                    @Param("end") LocalDate end);
+
+    Sale findTopByProductProductIdOrderBySaleDateDesc(String productId);
 }

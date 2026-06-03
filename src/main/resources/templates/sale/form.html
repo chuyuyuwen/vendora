@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <th:block th:replace="~{common/header :: head}"></th:block>
+<head th:replace="~{common/header :: head}">
 </head>
 <body>
     <th:block th:replace="~{common/header :: nav}"></th:block>
@@ -9,24 +8,42 @@
     <div class="container">
         <h3 class="mb-3">卖出录入</h3>
 
-        <form th:action="@{/sale/save}" method="post" class="row g-3" style="max-width:600px">
+        <form th:action="@{/sale/save}" method="post" class="row g-3" style="max-width:600px" id="saleForm">
             <div class="col-12">
                 <label class="form-label">商品</label>
-                <select name="product.productId" class="form-select" required>
+                <select name="product.productId" id="productSelect" class="form-select" required>
                     <option value="">-- 请选择商品 --</option>
                     <option th:each="p : ${products}" th:value="${p.productId}"
                             th:text="${p.productId + ' - ' + p.productName}"></option>
                 </select>
             </div>
+
+            <!-- 商品信息提示区 -->
+            <div class="col-12" id="productInfo" style="display:none;">
+                <div class="alert alert-info mb-0">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">当前库存</small>
+                            <div><strong id="stockDisplay">-</strong> 件</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">最近售价</small>
+                            <div><strong id="latestPriceDisplay">-</strong> 元</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-md-6">
                 <label class="form-label">售价</label>
-                <input type="number" name="salePrice" class="form-control"
+                <input type="number" id="salePrice" name="salePrice" class="form-control"
                        step="0.01" min="0" required placeholder="0.00">
             </div>
             <div class="col-md-6">
                 <label class="form-label">数量</label>
-                <input type="number" name="quantity" class="form-control"
+                <input type="number" id="quantity" name="quantity" class="form-control"
                        min="1" required placeholder="1">
+                <div class="form-text text-muted" id="stockHint"></div>
             </div>
             <div class="col-md-6">
                 <label class="form-label">卖出日期</label>
@@ -45,11 +62,36 @@
             </div>
             <div class="col-12">
                 <button type="submit" class="btn btn-primary">保存</button>
-                <a th:href="@{/sale/list}" class="btn btn-outline-secondary">取消</a>
+                <a th:href="@{/trade(tab='sale')}" class="btn btn-outline-secondary">取消</a>
             </div>
         </form>
     </div>
 
     <th:block th:replace="~{common/header :: scripts}"></th:block>
+    <script>
+        document.getElementById('productSelect').addEventListener('change', function() {
+            var productId = this.value;
+            if (!productId) {
+                document.getElementById('productInfo').style.display = 'none';
+                document.getElementById('salePrice').value = '';
+                document.getElementById('stockHint').textContent = '';
+                return;
+            }
+            fetch('/sale/product-info?productId=' + encodeURIComponent(productId))
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    document.getElementById('productInfo').style.display = 'block';
+                    document.getElementById('stockDisplay').textContent = data.stock;
+                    document.getElementById('latestPriceDisplay').textContent =
+                        Number(data.latestPrice).toFixed(2);
+                    document.getElementById('salePrice').value = data.latestPrice;
+                    document.getElementById('stockHint').textContent =
+                        '当前库存 ' + data.stock + ' 件，请勿超出';
+                })
+                .catch(function() {
+                    document.getElementById('productInfo').style.display = 'none';
+                });
+        });
+    </script>
 </body>
 </html>
