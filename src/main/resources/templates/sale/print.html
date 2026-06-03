@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <th:block th:replace="~{common/header :: head}"></th:block>
+<head th:replace="~{common/header :: head}">
 </head>
 <body>
     <th:block th:replace="~{common/header :: nav}"></th:block>
@@ -20,6 +19,7 @@
                 <button type="submit" class="btn btn-primary">查询</button>
             </div>
             <div class="col-md-6 text-end">
+                <a th:href="@{/trade(tab='sale')}" class="btn btn-outline-secondary me-2">返回</a>
                 <button class="btn btn-outline-secondary" onclick="window.print()">打印本页</button>
             </div>
         </form>
