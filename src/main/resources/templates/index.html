@@ -105,6 +105,113 @@
                 </div>
             </div>
         </div>
+
+        <!-- ===== 营业报表 ===== -->
+        <hr class="my-4">
+        <h4 class="mb-3"><i class="fa-solid fa-file-invoice"></i> 营业报表</h4>
+
+        <form class="row g-3 mb-4" th:action="@{/}" method="get">
+            <div class="col-md-2">
+                <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+            </div>
+            <div class="col-md-2">
+                <select name="categoryId" class="form-select">
+                    <option value="">全部性质</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}"
+                            th:text="${c.categoryName}"
+                            th:selected="${categoryId != null && categoryId == c.id}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">查询</button>
+                <a th:href="@{/}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="fa-solid fa-chart-line text-primary"></i> 营业额报表</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>商品性质</th>
+                                    <th>销售总数量</th>
+                                    <th>销售总金额</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="row : ${salesReport}">
+                                    <td th:text="${row.categoryName}"></td>
+                                    <td th:text="${row.totalQuantity}"></td>
+                                    <td th:text="${#numbers.formatDecimal(row.totalAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(salesReport)}">
+                                    <td colspan="3" class="text-center text-muted">暂无营业数据</td>
+                                </tr>
+                            </tbody>
+                            <tfoot th:if="${!#lists.isEmpty(salesReport)}" class="table-secondary">
+                                <tr>
+                                    <th>合计</th>
+                                    <th th:text="${#aggregates.sum(salesReport.![totalQuantity])}"></th>
+                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(salesReport.![totalAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="fa-solid fa-chart-bar text-success"></i> 利润分析</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>商品性质</th>
+                                    <th>销售数量</th>
+                                    <th>销售额</th>
+                                    <th>进货成本</th>
+                                    <th>利润</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="row : ${profitReport}">
+                                    <td th:text="${row.categoryName}"></td>
+                                    <td th:text="${row.saleQuantity}"></td>
+                                    <td th:text="${#numbers.formatDecimal(row.saleAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+                                    <td th:text="${#numbers.formatDecimal(row.purchaseAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+                                    <td>
+                                        <span th:classappend="${row.profit.doubleValue() >= 0} ? 'text-success' : 'text-danger'"
+                                              th:text="${#numbers.formatDecimal(row.profit, 0, 'COMMA', 2, 'POINT')}"></span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(profitReport)}">
+                                    <td colspan="5" class="text-center text-muted">暂无数据</td>
+                                </tr>
+                            </tbody>
+                            <tfoot th:if="${!#lists.isEmpty(profitReport)}" class="table-secondary">
+                                <tr>
+                                    <th>合计</th>
+                                    <th th:text="${#aggregates.sum(profitReport.![saleQuantity])}"></th>
+                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![saleAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![purchaseAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![profit]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script th:replace="~{common/header :: scripts}"></script>
