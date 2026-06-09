@@ -54,8 +54,19 @@ public class ProductController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute Product product) {
-        if (productService.getProductById(product.getProductId()) != null) {
+    public String save(@RequestParam String productId,
+                       @RequestParam String productName,
+                       @RequestParam Integer categoryId,
+                       @RequestParam(defaultValue = "1") Integer status) {
+        Product product = new Product();
+        product.setProductId(productId);
+        product.setProductName(productName);
+        product.setStatus(status);
+        product.setCategory(categoryRepository.findById(categoryId).orElse(null));
+
+        Product existing = productService.getProductById(productId);
+        if (existing != null) {
+            product.setCreateTime(existing.getCreateTime());
             productService.modifyProduct(product);
         } else {
             productService.addProduct(product);
@@ -66,6 +77,12 @@ public class ProductController {
     @GetMapping("/disable/{productId}")
     public String disable(@PathVariable String productId) {
         productService.disableProduct(productId);
+        return "redirect:/product/list";
+    }
+
+    @GetMapping("/enable/{productId}")
+    public String enable(@PathVariable String productId) {
+        productService.enableProduct(productId);
         return "redirect:/product/list";
     }
 }

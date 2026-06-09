@@ -40,6 +40,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public boolean enableProduct(String productId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product != null) {
+            product.setStatus(1);
+            productRepository.save(product);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public Product getProductById(String productId) {
         return productRepository.findById(productId).orElse(null);
     }
@@ -60,13 +71,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    // 获取商品总数
     public long countAllProducts() {
         return productRepository.count();
     }
 
     @Override
-    // 获取已停用商品数
     public long countDisabledProducts() {
         return productRepository.countByStatus(0);
     }

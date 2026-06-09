@@ -28,7 +28,7 @@
             </div>
             <div class="col-12">
                 <label class="form-label">商品性质</label>
-                <select name="category.id" class="form-select" required>
+                <select name="categoryId" class="form-select" required>
                     <option value="">-- 请选择 --</option>
                     <option th:each="c : ${categories}" th:value="${c.id}"
                             th:text="${c.categoryName}"

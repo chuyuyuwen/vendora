@@ -65,6 +65,10 @@
                            th:href="@{/product/disable/{id}(id=${p.productId})}"
                            class="btn btn-sm btn-danger"
                            onclick="return confirm('确定停用该商品吗？')">停用</a>
+                        <a th:unless="${p.status == 1}"
+                           th:href="@{/product/enable/{id}(id=${p.productId})}"
+                           class="btn btn-sm btn-success"
+                           onclick="return confirm('确定启用该商品吗？')">启用</a>
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(products)}">
