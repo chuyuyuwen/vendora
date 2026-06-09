@@ -1,18 +1,23 @@
 package com.city.vendora.controller;
 
+import com.city.vendora.repository.CategoryRepository;
 import com.city.vendora.service.InventoryService;
 import com.city.vendora.service.ProductService;
 import com.city.vendora.service.PurchaseService;
 import com.city.vendora.service.ReportService;
 import com.city.vendora.service.SaleService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 
 @Controller
 public class IndexController {
@@ -22,19 +27,24 @@ public class IndexController {
     private final PurchaseService purchaseService;
     private final InventoryService inventoryService;
     private final ReportService reportService;
+    private final CategoryRepository categoryRepository;
 
     public IndexController(ProductService productService, SaleService saleService,
                            PurchaseService purchaseService, InventoryService inventoryService,
-                           ReportService reportService) {
+                           ReportService reportService, CategoryRepository categoryRepository) {
         this.productService = productService;
         this.saleService = saleService;
         this.purchaseService = purchaseService;
         this.inventoryService = inventoryService;
         this.reportService = reportService;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/")
-    public String index(Model model) {
+    public String index(@RequestParam(required = false) @DateTimeFormat(iso = DATE) LocalDate startDate,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DATE) LocalDate endDate,
+                        @RequestParam(required = false) Integer categoryId,
+                        Model model) {
         long totalProducts = productService.countAllProducts();
         long disabledProducts = productService.countDisabledProducts();
         long lowStockCount = inventoryService.getLowStockProducts(10).size();
@@ -69,6 +79,27 @@ public class IndexController {
         } catch (Exception e) {
             model.addAttribute("dailySalesJson", "[]");
         }
+
+        // 营业额报表
+        try {
+            List<Map<String, Object>> salesReport = reportService.getSalesReport(startDate, endDate, categoryId);
+            model.addAttribute("salesReport", salesReport);
+        } catch (Exception e) {
+            model.addAttribute("salesReport", java.util.Collections.EMPTY_LIST);
+        }
+
+        // 利润分析
+        try {
+            List<Map<String, Object>> profitReport = reportService.getProfitReport(startDate, endDate, categoryId);
+            model.addAttribute("profitReport", profitReport);
+        } catch (Exception e) {
+            model.addAttribute("profitReport", java.util.Collections.EMPTY_LIST);
+        }
+
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("categories", categoryRepository.findAll());
 
         return "index";
     }
