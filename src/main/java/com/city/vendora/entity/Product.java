@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@DynamicInsert
 @Table(name = "product")
 public class Product {
     @Id
@@ -38,4 +40,11 @@ public class Product {
     @ColumnDefault("1")
     @Column(name = "status")
     private Integer status;
+
+    @PrePersist
+    void onCreate() {
+        if (this.createTime == null) {
+            this.createTime = LocalDateTime.now();
+        }
+    }
 }

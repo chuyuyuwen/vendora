@@ -29,7 +29,7 @@
                 <a th:href="@{/sale/list}" class="btn btn-outline-secondary">重置</a>
             </div>
             <div class="col-md-4 text-end">
-                <a th:href="@{/sale/add}" class="btn btn-success">卖出录入</a>
+                <button type="button" class="btn btn-success" onclick="openSaleModal()">卖出录入</button>
                 <a th:href="@{/sale/print(startDate=${startDate}, endDate=${endDate})}"
                    class="btn btn-info">汇总打印</a>
             </div>
@@ -86,6 +86,107 @@
         </div>
     </div>
 
+    <!-- ===== 卖出录入弹窗 ===== -->
+    <div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form th:action="@{/sale/save}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">卖出录入</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">商品</label>
+                            <select name="product.productId" id="saleProductSelect" class="form-select" required>
+                                <option value="">-- 请选择商品 --</option>
+                                <option th:each="p : ${products}" th:value="${p.productId}"
+                                        th:text="${p.productId + ' - ' + p.productName}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="saleProductInfo" style="display:none;">
+                            <div class="alert alert-info mb-0">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">当前库存</small>
+                                        <div><strong id="saleStockDisplay">-</strong> 件</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">最近售价</small>
+                                        <div><strong id="saleLatestPriceDisplay">-</strong> 元</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">售价</label>
+                                <input type="number" name="salePrice" id="salePriceInput" class="form-control"
+                                       step="0.01" min="0" required placeholder="0.00">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">数量</label>
+                                <input type="number" name="quantity" id="saleQuantityInput" class="form-control"
+                                       min="1" required placeholder="1">
+                                <div class="form-text" id="saleStockHint"></div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">卖出日期</label>
+                                <input type="date" name="saleDate" class="form-control" required
+                                       th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">总金额</label>
+                                <input type="number" name="totalAmount" class="form-control"
+                                       step="0.01" min="0" placeholder="留空自动计算">
+                                <div class="form-text">留空则自动计算（售价 × 数量）</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <input type="text" name="remark" class="form-control" maxlength="255">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <th:block th:replace="~{common/header :: scripts}"></th:block>
+    <script>
+        var saleModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            saleModal = new bootstrap.Modal(document.getElementById('saleModal'));
+            document.getElementById('saleProductSelect').addEventListener('change', function() {
+                var productId = this.value;
+                if (!productId) {
+                    document.getElementById('saleProductInfo').style.display = 'none';
+                    document.getElementById('salePriceInput').value = '';
+                    document.getElementById('saleStockHint').textContent = '';
+                    return;
+                }
+                fetch('/sale/product-info?productId=' + encodeURIComponent(productId))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        document.getElementById('saleProductInfo').style.display = 'block';
+                        document.getElementById('saleStockDisplay').textContent = data.stock;
+                        document.getElementById('saleLatestPriceDisplay').textContent =
+                            Number(data.latestPrice).toFixed(2);
+                        document.getElementById('salePriceInput').value = data.latestPrice;
+                        document.getElementById('saleStockHint').textContent =
+                            '当前库存 ' + data.stock + ' 件，请勿超出';
+                    });
+            });
+        });
+        function openSaleModal() {
+            saleModal.show();
+        }
+    </script>
 </body>
 </html>

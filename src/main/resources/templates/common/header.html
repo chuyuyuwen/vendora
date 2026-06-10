@@ -56,10 +56,10 @@
                         <a class="nav-link" href="/"><i class="fa-solid fa-house"></i> 首页</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/product/list"><i class="fa-solid fa-box"></i> 商品管理</a>
+                        <a class="nav-link" href="/trade"><i class="fa-solid fa-right-left"></i> 交易管理</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/trade"><i class="fa-solid fa-right-left"></i> 交易管理</a>
+                        <a class="nav-link" href="/product/list"><i class="fa-solid fa-box"></i> 商品管理</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/inventory/list"><i class="fa-solid fa-warehouse"></i> 库存管理</a>
@@ -85,23 +85,27 @@
     <script>
         (function() {
             var path = window.location.pathname;
-            var links = document.querySelectorAll('#mainNav .nav-link');
-            var best = null;
-            links.forEach(function(link) {
-                var href = link.getAttribute('href');
-                if (href && href !== '#' && href !== '/') {
-                    if (path.startsWith(href)) {
-                        if (!best || href.length > best.getAttribute('href').length) {
-                            best = link;
-                        }
-                    }
+            // 路径前缀 → 对应导航链接 href
+            var prefixMap = [
+                ['/product', '/product/list'],
+                ['/inventory', '/inventory/list'],
+                ['/purchase', '/trade'],
+                ['/sale', '/trade'],
+                ['/trade', '/trade']
+            ];
+            var targetHref = '/';
+            for (var i = 0; i < prefixMap.length; i++) {
+                if (path.startsWith(prefixMap[i][0])) {
+                    targetHref = prefixMap[i][1];
+                    break;
                 }
-            });
-            if (path === '/') {
-                best = document.querySelector('#mainNav .nav-link[href="/"]');
             }
-            if (best) {
-                best.classList.add('active');
+            var links = document.querySelectorAll('#mainNav .nav-link');
+            for (var j = 0; j < links.length; j++) {
+                if (links[j].getAttribute('href') === targetHref) {
+                    links[j].classList.add('active');
+                    break;
+                }
             }
         })();
     </script>

@@ -9,7 +9,6 @@
     <div class="container">
         <h3 class="mb-3">买入管理</h3>
 
-        <!-- 搜索栏 -->
         <form class="row g-3 mb-4" th:action="@{/purchase/list}" method="get">
             <div class="col-md-2">
                 <select name="productId" class="form-select">
@@ -32,13 +31,12 @@
                 <a th:href="@{/purchase/list}" class="btn btn-outline-secondary">重置</a>
             </div>
             <div class="col-md-4 text-end">
-                <a th:href="@{/purchase/add}" class="btn btn-success">买入录入</a>
+                <button type="button" class="btn btn-success" onclick="openPurchaseModal()">买入录入</button>
                 <a th:href="@{/purchase/print(startDate=${startDate}, endDate=${endDate})}"
                    class="btn btn-info">汇总打印</a>
             </div>
         </form>
 
-        <!-- 买入列表 -->
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
@@ -71,7 +69,6 @@
             </tbody>
         </table>
 
-        <!-- 分页 -->
         <div th:if="${page.totalPages > 0}" class="d-flex justify-content-between align-items-center">
             <span>共 <b th:text="${page.totalRecords}"></b> 条记录，第 <b th:text="${page.currentPage}"></b>/<b th:text="${page.totalPages}"></b> 页</span>
             <nav>
@@ -91,6 +88,72 @@
         </div>
     </div>
 
+    <!-- ===== 买入录入弹窗 ===== -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form th:action="@{/purchase/save}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">买入录入</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">商品</label>
+                            <select name="product.productId" class="form-select" required>
+                                <option value="">-- 请选择商品 --</option>
+                                <option th:each="p : ${products}" th:value="${p.productId}"
+                                        th:text="${p.productId + ' - ' + p.productName}"></option>
+                            </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">进价</label>
+                                <input type="number" name="purchasePrice" class="form-control"
+                                       step="0.01" min="0" required placeholder="0.00">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">数量</label>
+                                <input type="number" name="quantity" class="form-control"
+                                       min="1" required placeholder="1">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">买入日期</label>
+                                <input type="date" name="purchaseDate" class="form-control" required
+                                       th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">总金额</label>
+                                <input type="number" name="totalAmount" class="form-control"
+                                       step="0.01" min="0" placeholder="留空自动计算">
+                                <div class="form-text">留空则自动计算（进价 × 数量）</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <input type="text" name="remark" class="form-control" maxlength="255">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <th:block th:replace="~{common/header :: scripts}"></th:block>
+    <script>
+        var purchaseModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
+        });
+        function openPurchaseModal() {
+            purchaseModal.show();
+        }
+    </script>
 </body>
 </html>

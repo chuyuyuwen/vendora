@@ -8,6 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/product")
 public class ProductController {
@@ -69,9 +72,27 @@ public class ProductController {
             product.setCreateTime(existing.getCreateTime());
             productService.modifyProduct(product);
         } else {
+            product.setCreateTime(java.time.LocalDateTime.now());
             productService.addProduct(product);
         }
         return "redirect:/product/list";
+    }
+
+    @GetMapping("/get/{productId}")
+    @ResponseBody
+    public Map<String, Object> getProduct(@PathVariable String productId) {
+        Product p = productService.getProductById(productId);
+        if (p == null) {
+            Map<String, Object> err = new HashMap<>();
+            err.put("error", "商品不存在");
+            return err;
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("productId", p.getProductId());
+        map.put("productName", p.getProductName());
+        map.put("categoryId", p.getCategory().getId());
+        map.put("status", p.getStatus());
+        return map;
     }
 
     @GetMapping("/disable/{productId}")
