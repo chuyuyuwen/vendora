@@ -9,11 +9,21 @@
     <div class="container">
         <div th:replace="~{common/header :: messages}"></div>
 
-        <h4 class="mb-4"><i class="fa-solid fa-chart-simple"></i> 数据概览</h4>
+                <style>
+            .stat-card {
+                transition: transform 0.15s, box-shadow 0.15s;
+                cursor: pointer;
+            }
+            .stat-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12) !important;
+            }
+        </style>
+<h4 class="mb-4"><i class="fa-solid fa-chart-simple"></i> 数据概览</h4>
 
         <div class="row g-3 mb-4">
             <div class="col-md-3">
-                <div class="card border-start border-primary border-4 shadow-sm h-100">
+                <div class="card border-start border-primary border-4 stat-card shadow-sm h-100" onclick="location.href='/product/list'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -31,7 +41,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-start border-warning border-4 shadow-sm h-100">
+                <div class="card border-start border-warning border-4 stat-card shadow-sm h-100" onclick="location.href='/inventory/list'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -48,12 +58,12 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-start border-success border-4 shadow-sm h-100">
+                <div class="card border-start border-success border-4 stat-card shadow-sm h-100" onclick="location.href='/purchase/list'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted small mb-1">今日买入</p>
-                                <h5 class="mb-0 text-success" th:text="'¥' + ${#numbers.formatDecimal(todayPurchasesAmount, 0, 'COMMA', 2, 'POINT')}">¥0.00</h5>
+                                <h5 class="mb-0 text-success" th:text="'¥' + ${#numbers.formatDecimal(todayPurchasesAmount, 1, 'COMMA', 2, 'POINT')}">¥0.00</h5>
                             </div>
                             <div class="bg-success bg-opacity-10 p-3 rounded">
                                 <i class="fa-solid fa-cart-plus text-success fa-lg"></i>
@@ -65,12 +75,12 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-start border-info border-4 shadow-sm h-100">
+                <div class="card border-start border-info border-4 stat-card shadow-sm h-100" onclick="location.href='/sale/list'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted small mb-1">今日卖出</p>
-                                <h5 class="mb-0 text-info" th:text="'¥' + ${#numbers.formatDecimal(todaySalesAmount, 0, 'COMMA', 2, 'POINT')}">¥0.00</h5>
+                                <h5 class="mb-0 text-info" th:text="'¥' + ${#numbers.formatDecimal(todaySalesAmount, 1, 'COMMA', 2, 'POINT')}">¥0.00</h5>
                             </div>
                             <div class="bg-info bg-opacity-10 p-3 rounded">
                                 <i class="fa-solid fa-cash-register text-info fa-lg"></i>
@@ -159,8 +169,8 @@
                             <tfoot th:if="${!#lists.isEmpty(salesReport)}" class="table-secondary">
                                 <tr>
                                     <th>合计</th>
-                                    <th th:text="${#aggregates.sum(salesReport.![totalQuantity])}"></th>
-                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(salesReport.![totalAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${salesTotalQty}"></th>
+                                    <th th:text="${#numbers.formatDecimal(salesTotalAmt, 0, 'COMMA', 2, 'POINT')}"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -190,7 +200,7 @@
                                     <td th:text="${#numbers.formatDecimal(row.saleAmount, 0, 'COMMA', 2, 'POINT')}"></td>
                                     <td th:text="${#numbers.formatDecimal(row.purchaseAmount, 0, 'COMMA', 2, 'POINT')}"></td>
                                     <td>
-                                        <span th:classappend="${row.profit.doubleValue() >= 0} ? 'text-success' : 'text-danger'"
+                                        <span th:classappend="${row.profit.doubleValue() >= 0 ? 'text-success' : 'text-danger'}"
                                               th:text="${#numbers.formatDecimal(row.profit, 0, 'COMMA', 2, 'POINT')}"></span>
                                     </td>
                                 </tr>
@@ -201,10 +211,10 @@
                             <tfoot th:if="${!#lists.isEmpty(profitReport)}" class="table-secondary">
                                 <tr>
                                     <th>合计</th>
-                                    <th th:text="${#aggregates.sum(profitReport.![saleQuantity])}"></th>
-                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![saleAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
-                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![purchaseAmount]), 0, 'COMMA', 2, 'POINT')}"></th>
-                                    <th th:text="${#numbers.formatDecimal(#aggregates.sum(profitReport.![profit]), 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${profitTotalQty}"></th>
+                                    <th th:text="${#numbers.formatDecimal(profitTotalSale, 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${#numbers.formatDecimal(profitTotalPurchase, 0, 'COMMA', 2, 'POINT')}"></th>
+                                    <th th:text="${#numbers.formatDecimal(profitTotalProfit, 0, 'COMMA', 2, 'POINT')}"></th>
                                 </tr>
                             </tfoot>
                         </table>

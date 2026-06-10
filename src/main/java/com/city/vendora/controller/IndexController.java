@@ -84,16 +84,52 @@ public class IndexController {
         try {
             List<Map<String, Object>> salesReport = reportService.getSalesReport(startDate, endDate, categoryId);
             model.addAttribute("salesReport", salesReport);
+            // 合计值
+            long salesTotalQty = 0;
+            BigDecimal salesTotalAmt = BigDecimal.ZERO;
+            for (Map<String, Object> row : salesReport) {
+                Object qty = row.get("totalQuantity");
+                Object amt = row.get("totalAmount");
+                if (qty instanceof Number) salesTotalQty += ((Number) qty).longValue();
+                if (amt instanceof Number) salesTotalAmt = salesTotalAmt.add(new BigDecimal(amt.toString()));
+            }
+            model.addAttribute("salesTotalQty", salesTotalQty);
+            model.addAttribute("salesTotalAmt", salesTotalAmt);
         } catch (Exception e) {
             model.addAttribute("salesReport", java.util.Collections.EMPTY_LIST);
+            model.addAttribute("salesTotalQty", 0L);
+            model.addAttribute("salesTotalAmt", BigDecimal.ZERO);
         }
 
         // 利润分析
         try {
             List<Map<String, Object>> profitReport = reportService.getProfitReport(startDate, endDate, categoryId);
             model.addAttribute("profitReport", profitReport);
+            // 合计值
+            long profitTotalQty = 0;
+            BigDecimal profitTotalSale = BigDecimal.ZERO;
+            BigDecimal profitTotalPurchase = BigDecimal.ZERO;
+            BigDecimal profitTotalProfit = BigDecimal.ZERO;
+            for (Map<String, Object> row : profitReport) {
+                Object sq = row.get("saleQuantity");
+                Object sa = row.get("saleAmount");
+                Object pa = row.get("purchaseAmount");
+                Object pf = row.get("profit");
+                if (sq instanceof Number) profitTotalQty += ((Number) sq).longValue();
+                if (sa instanceof Number) profitTotalSale = profitTotalSale.add(new BigDecimal(sa.toString()));
+                if (pa instanceof Number) profitTotalPurchase = profitTotalPurchase.add(new BigDecimal(pa.toString()));
+                if (pf instanceof Number) profitTotalProfit = profitTotalProfit.add(new BigDecimal(pf.toString()));
+            }
+            model.addAttribute("profitTotalQty", profitTotalQty);
+            model.addAttribute("profitTotalSale", profitTotalSale);
+            model.addAttribute("profitTotalPurchase", profitTotalPurchase);
+            model.addAttribute("profitTotalProfit", profitTotalProfit);
         } catch (Exception e) {
             model.addAttribute("profitReport", java.util.Collections.EMPTY_LIST);
+            model.addAttribute("profitTotalQty", 0L);
+            model.addAttribute("profitTotalSale", BigDecimal.ZERO);
+            model.addAttribute("profitTotalPurchase", BigDecimal.ZERO);
+            model.addAttribute("profitTotalProfit", BigDecimal.ZERO);
         }
 
         model.addAttribute("startDate", startDate);
